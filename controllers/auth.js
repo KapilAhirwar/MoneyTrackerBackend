@@ -45,27 +45,31 @@ exports.Signup = async (req, res) => {
 };
 
 
-// Login functionS
 const createToken = (user) => {
-    // Define the payload
+    const { password, ...userWithoutPassword } = user.toObject(); // Exclude password
     const payload = {
-        data:user,
+        data: userWithoutPassword, // Or just include user ID
     };
-    // Sign the token with your secret key
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
-
     return token;
 };
 
-// Usage in the login function
 exports.Login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
+        // Basic validation
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide both email and password.',
+            });
+        }
+
         // Find the user by email
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).json({
+            return res.status(401).json({
                 success: false,
                 message: 'Invalid email or password.',
             });
@@ -74,7 +78,7 @@ exports.Login = async (req, res) => {
         // Check if the password matches
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(400).json({
+            return res.status(401).json({
                 success: false,
                 message: 'Invalid email or password.',
             });
@@ -83,14 +87,21 @@ exports.Login = async (req, res) => {
         // Create a token with the user's information
         const token = createToken(user);
 
+        // Set the token as a cookie
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'None',
+        });
+
         res.status(200).json({
             success: true,
-            token, // Send the token back to the client
-            data: user, // Send user data (exclude sensitive information)
+            token, // Optionally send back the token
+            data: user, // Ensure sensitive information is not sent
             message: 'Login successful!',
         });
     } catch (error) {
-        console.error(error.message);
+        console.error("Login Error:", error.message);
         res.status(500).json({
             success: false,
             message: 'Server error during login.',
