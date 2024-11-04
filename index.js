@@ -3,8 +3,6 @@ const cors = require('cors');
 const app = express();
 const DbConnect = require('./DBconnect/Dbconnect');
 const route = require('./routes/route');
-const cookieParser = require('cookie-parser');
-
 require('dotenv').config();
 
 // CORS Configuration
@@ -16,7 +14,6 @@ const corsOptions = {
 // Apply CORS middleware globally before defining routes
 app.use(cors(corsOptions));
 app.use(express.json()); // Middleware for parsing JSON bodies
-app.use(cookieParser());
 
 // Database Connection
 DbConnect.DbConnect();
