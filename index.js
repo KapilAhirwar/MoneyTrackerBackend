@@ -4,10 +4,18 @@ const app =  express();
 const DbConnect = require('./DBconnect/Dbconnect');
 const route = require('./routes/route');
 require('dotenv').config();
+
+
 // middleware
 app.use(express.json());
-app.use(cors())
 
+//middleware's
+const corsOptions = {
+    origin: ['http://localhost:3000', 'https://money-tacker-frontend.vercel.app/'], // No trailing slash
+    credentials: true,
+};
+// app.use(cors())
+app.use(cors(corsOptions));
 
 const PORT = process.env.PORT || 6000;
 
